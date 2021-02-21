@@ -32,7 +32,12 @@ by already), OR it can be trout followed
 by a smaller ST expression (similarly).
 -/
 
--- YOUR DATA TYPE DEFINITION HERE
+inductive SalmonTrout : Type
+| nofish
+| salmon (restoffish : SalmonTrout)
+| trout (restoffish : SalmonTrout)
+
+open SalmonTrout
 
 /-
 Now assume that the *meaning* of a 
@@ -60,7 +65,13 @@ will want your helper function to
 be recursive.
 -/
 
--- YOUR EVAL AND HELPER FUNCIONS HERE
+def fishEvalHelper : SalmonTrout → prod nat nat → prod nat nat 
+| SalmonTrout.nofish (prod.mk s t) := (prod.mk s t)
+| (SalmonTrout.salmon e) (prod.mk s t) := fishEvalHelper e (s+1,t)
+| (SalmonTrout.trout e) (prod.mk s t) := fishEvalHelper e (s,t+1)
+
+def fishEval : SalmonTrout → prod nat nat 
+| e := fishEvalHelper e (0,0)
 
 /-
  WRITE SOME TEST CASES
@@ -71,6 +82,14 @@ be recursive.
     an expression with three salmon
     and two trout.
 -/
+
+def case1 := nofish
+def case2 := salmon (salmon nofish)
+def case3 := salmon (trout (trout (nofish)))
+
+#eval fishEval case1
+#eval fishEval case2
+#eval fishEval case3
 
 /-
 2. [25 points] polymorphic functions 
@@ -88,7 +107,12 @@ that Lean defines this function
 with the name, id. 
 -/
 
--- YOUR ANSWER HERE
+universe u
+
+def id' : Π { α : Type u}, α → α :=
+λ α, 
+    fun a, 
+        a 
 
 
 /-
@@ -147,8 +171,9 @@ Lean, pId_bool, using the option type, to
 represent this partial function. 
 -/
 
--- YOUR ANSWER HERE
-
+def pId_bool : option bool → bool
+| none := ff
+| (some v) :=  tt
 /-
 TEST YOUR FUNCTION
 Use #eval or #reduce to show that your
@@ -156,8 +181,10 @@ function works as expected for both
 argument values. 
 -/
 
--- HERE
-
+def nothing : option bool := option.none
+def something : option bool := option.some tt
+#eval pId_bool nothing
+#eval pId_bool something
 
 /- 
 4. [25 points] Higher-order functions 
@@ -179,8 +206,15 @@ to rewrite it.
 -- universe u 
 structure box (α : Type u) : Type u :=
 (val : α)
+/- 
+def liftF2Box (f : (Type → Type)) : Π (α β : Type), (α → β) → (box α → box β) :=
+    
+        box.mk (f a.val) -/
+        
+def liftF2Box (f : Type → Type): Π (α β : Type), (α → β) → ((box α) → (box β)) :=
 
--- YOUR FUNCTION HERE
+    λ a,
+        box.mk (f a.val)
 
 -- WHEN YOU'VE GOT IT, THIS TEST SHOULD PASS
 
