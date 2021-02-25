@@ -1,5 +1,6 @@
 /-
 HIGHER-ORDER FUNCTION WARMUP
+ncm5jv
 -/
 
 /-
@@ -12,7 +13,9 @@ definition:
 -/
 
 
--- ANSWER HERE
+def double : ℕ → ℕ
+| 0 := 0
+| (n' + 1) := (double n') + 2
 
 /-
 2. Write a function, map_list_nat, that 
@@ -26,8 +29,9 @@ function will work by case analysis and
 recursion on l.
 -/
 
--- ANSWER HERE
- 
+def map_list_nat : (ℕ → ℕ) → (list ℕ) → (list ℕ)
+| f list.nil := list.nil
+| f (h::t) := list.cons (f h) (map_list_nat f t)  
 
 /-
 3. Test your map_list_nat function by
@@ -38,7 +42,11 @@ your set of test inputs and use comments
 to document the expected return values.
 -/
 
-
+#eval map_list_nat nat.succ []
+#eval map_list_nat nat.succ [2]
+#eval map_list_nat nat.succ [1,2,3]
+#eval map_list_nat nat.succ [1,1,1]
+#eval map_list_nat nat.succ [0]
 
 /-
 4. In Lean, repr is an "overloaded"
@@ -62,8 +70,10 @@ each nat in the given list has been
 converted to a string using repr.
 -/
 
--- ANSWER HERE
-
+def map_list_nat_string : list ℕ → list string 
+| list.nil := list.nil
+| (h::t) := list.cons (repr h) (map_list_nat_string t)
+  
 
 /-
 5. Write a function, filterZeros,
@@ -75,7 +85,12 @@ and all zero values removed. Given
 should return [1,2,3,4,5].
 -/
 
--- ANSWER HERE
+def filterZeros : list ℕ → list ℕ
+| list.nil := list.nil
+| (h::t) := 
+  if h = 0
+  then t
+  else list.cons h (filterZeros t)
 
 
 /-
@@ -87,12 +102,21 @@ that returns false (ff) otherwise. Be
 sure to test your function.
 -/
 
--- ANSWER HERE
+def isEqN : ℕ → (ℕ → bool) :=
+λ n,
+  λ m,
+    n = m
 
+#eval isEqN 5
+#eval isEqN 5 6
+#eval isEqN 5 5
+#check isEqN 5
+#check isEqN 5
+#check isEqN 5 6
+#check isEqN 5 5
 
 /-
-7.
-Write a function filterNs that takes
+7. Write a function filterNs that takes
 a function, pred, from nat to bool 
 and a list, l, of natural numbers, and
 that returns a list like l but with all
@@ -103,8 +127,12 @@ functions (functions that for a given
 argument return true or false).
 -/
 
--- ANSWER HERE
-
+def filterNs : (ℕ → bool) →  list ℕ → list ℕ
+| pred list.nil := list.nil
+| pred (h::t) := 
+  if pred h
+  then filterNs pred t
+  else list.cons h (filterNs pred t)
 
 
 /-
@@ -123,8 +151,13 @@ nat.succ, your double function, and
 (nat.add 4) as function arguments. 
 -/
 
--- ANSWER HERE
+def iterate : (ℕ → ℕ) → ℕ → (ℕ → ℕ)
+| f 0 := λ m, m
+| f (n' + 1) := λ m, f (iterate f (n') m) 
 
+#eval iterate nat.succ 3 5
+#eval iterate double 3 5
+#eval iterate (nat.add 4) 3 5
 
 /-
 9. Write a function, list_add, that takes
@@ -132,7 +165,9 @@ a list of natural numbers and returns the
 sum of all the numbers in the list.
 -/
 
--- ANSWER HERE
+def list_add : list ℕ → ℕ 
+| list.nil := 0
+| (h::t) := h + list_add t
 
 
 /-
@@ -141,7 +176,9 @@ a list of natural numbers and returns the
 product of all the numbers in the list.
 -/
 
--- ANSWER HERE
+def list_mul : list ℕ → ℕ 
+| list.nil := 1
+| (h::t) := h * list_mul t
 
 
 /-
@@ -154,9 +191,16 @@ empty and non-empty lists including lists
 that both have and don't have zero values.
 -/
 
--- ANSWER HERE
+def list_has_zero : list ℕ → bool 
+| list.nil := ff
+| (h::t) := if h = 0
+            then tt
+            else list_has_zero t
 
-
+#eval list_has_zero []
+#eval list_has_zero [1,0,1]
+#eval list_has_zero [0]
+#eval list_has_zero [1,1,1]
 
 /-
 12. Write a function, compose_nat_nat,
@@ -168,7 +212,16 @@ using at least nat.succ and double as
 argument values.
 -/
 
--- ANSWER HERE
+def compose_nat_nat : (ℕ → ℕ) → (ℕ → ℕ) → (ℕ → ℕ) :=
+λ f,
+  λ g,
+    λ n,
+      g (f n)
+      
+#eval compose_nat_nat nat.succ double 4
+#eval compose_nat_nat double nat.succ 4
+#check compose_nat_nat nat.succ double 4
+#check compose_nat_nat nat.succ double 
 
 
 /-
@@ -184,8 +237,15 @@ value of type α and that returns a
 box containing that value transformed
 by the application of f.  
 -/
+universe u
 
--- ANSWER HERE
+structure box (α : Type u) : Type u :=
+(val : α)
+
+def map_box {α β : Type u}
+  (f : α → β) : (box α → box β) :=
+  λ b, 
+    box.mk (f b.val)
 
 /-
 14. 
@@ -198,7 +258,12 @@ some b, where b is a transformed by
 f.
 -/
 
--- ANSWER HERE
+def map_option {α β : Type u} (f : α → β) : (option α) → (option β) :=
+λ opa,
+  match opa with
+  | option.none := option.none
+  | option.some (a : α) := option.some (f a)
+  end
 
 
 /-
@@ -214,5 +279,6 @@ a constant. You'll need to declare a
 universe variable for the list problem.
 -/
 
--- ANSWER HERE
-
+def default_nat : ℕ := 0
+def default_bool : bool := ff
+def default_list {α : Type u} : list α := list.nil
