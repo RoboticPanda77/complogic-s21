@@ -7,13 +7,12 @@ def map_option_nat_nat :
   (nat → nat) → 
   (option nat) → 
   option nat 
+-- by case analysis on the option
 | f option.none := option.none
-| f (option.some v) := option.some (_) 
--- by case analysis on the option argument
+| f (option.some v) := option.some (f v) 
 
+-- almost the most general case
 
-
--- API, general case
 universes u₁ u₂
 
 #check option
