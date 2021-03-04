@@ -1,3 +1,8 @@
+
+def list_map {α β : Type} : (α → β) → (list α) → list β 
+| f list.nil := list.nil
+| f (h::t) := (f h)::(list_map f t)
+
 /-
 1. Write a polymorphic function, someSatisfies, 
 that takes a a predicate function, p, of type 
@@ -12,6 +17,15 @@ is to return true (tt) if and only there is some
 tt value in the list.
 -/
 
+def someSatisfiesHelper : list bool → bool
+| list.nil := ff
+| (h::t) := if h
+            then tt
+            else someSatisfiesHelper t
+
+def someSatisfies {α : Type} : (α → bool) → list α → bool 
+| p l := someSatisfiesHelper (list_map p l)
+
 /-
 2.  Write a polymorphic function, allSatisfy, 
 that takes a a predicate function, p, of type 
@@ -25,6 +39,15 @@ then pass to a helper function, the job of which
 is to return true (tt) if and only every value
 in the list is tt. 
 -/
+
+def allSatisfyHelper : list bool → bool
+| list.nil := tt
+| (h::t) := if h = ff
+            then ff
+            else allSatisfyHelper t
+
+def allSatisfy {α : Type} : (α → bool) → list α → bool 
+| p l := allSatisfyHelper (list_map p l)
 
 /-
 3. Write a function called simple_fold_list.
@@ -44,6 +67,10 @@ simple_fold_list nat.add 0 [1,2,3,4,5] = 15
 simple_fold_list nat.mul 1 [1,2,3,4,5] = 120
 -/
 
+def simple_fold_list {α : Type} : (α → α → α) → α → list α → α
+| f i list.nil := i
+| f i (h::t) := f h (simple_fold_list f i t)
+
 /-
 4. Write an application of simple_fold_list to
 reduce a list of strings to a single string in
@@ -56,10 +83,18 @@ For example, reduce ["Hello", " ", "Lean!"] to
 "Hello, Lean!"
 -/
 
+#eval simple_fold_list string.append "" ["Hello", ", ", "Lean!"]
+
 /-
 5. Re-implement here your helpder functions from
 questions 1 and 2 using simple_fold_list.
 -/
+
+def someSatisfiesHelper' (l : list bool) : bool :=
+simple_fold_list bor ff l
+
+def allSatisfyHelper' (l : list bool) : bool :=
+simple_fold_list band tt l
 
 /-
 6. This question asks you to understand how to
@@ -109,12 +144,12 @@ argument to ev_ind is impliict, and not that it
 can be inferred from the second argument.)
 -/
 
-def ev0 : ev 0 := _
-def ev2 : ev 2 := _
-def ev4 : ev 4 := _
-def ev6 : ev 6 := _
-def ev8 : ev 8 := _
-def ev10 : ev 10 := _
+def ev0 : ev 0 := ev_base
+def ev2 : ev 2 := ev_ind ev_base
+def ev4 : ev 4 := ev_ind (ev_ind ev_base)
+def ev6 : ev 6 := ev_ind (ev_ind (ev_ind ev_base))
+def ev8 : ev 8 := ev_ind (ev_ind (ev_ind (ev_ind ev_base)))
+def ev10 : ev 10 := ev_ind (ev_ind (ev_ind (ev_ind (ev_ind ev_base)))))
 
 /-
 6B. You should have been able to give values for 
@@ -123,6 +158,7 @@ What single word can you use to indate that each
 of these types has at least one value?
 -/
 
+-- inhabited
 
 /-
 6C. Try to give values for each of the types in
@@ -133,9 +169,15 @@ each of these types, in relation to the fact that
 these types have no values.
 -/
 
+-- None of these ev functions' corresponding natural
+-- is even, so the definitions cannot be completed.
+
 def ev1 : ev 1 := _
 def ev3 : ev 3 := _
 def ev5 : ev 5 := _
+
+-- uninhabited
+
 
 /-
 6D. Define an inductive family, odd n, indexed by
@@ -145,6 +187,16 @@ even numbers have no values. Then show that you
 can complete the preceding three definitions if you
 replace ev by odd.
 -/
+
+inductive od : ℕ → Type
+| od_base : od 1
+| od_ind  {n : nat} (odn : od n) : od (n + 2)
+
+open od
+
+def od1 : od 1 := od_base
+def od3 : od 3 := od_ind od_base
+def od5 : od 5 := od_ind (od_ind od_base)
 
 /-
 7. As you know, the type, empty, is uninhabited.
@@ -166,15 +218,23 @@ write a short answer (in English) to the
 question at the beginning of this problem.
 -/
 
-def foo : ev 1 → empty :=
+def foo {m : empty} : ev 1 → empty :=
 λ (e : ev 1),
-  _
+  m
 
-def bar : ev 3 → empty :=
-_
+def bar {m : empty} : ev 3 → empty :=
+λ (e : ev 3),
+  m
 
-def baz : ev 5 → empty :=
-_
+def baz {m : empty} : ev 5 → empty :=
+λ (e : ev 5),
+  m
+
+-- This tells us that in functional programming
+-- we can even define functions that cannot
+-- possibly be called, expanding our toolkit 
+-- in case one day false suddenly decides to
+-- be true.
 
 /- 8. Define evdp to be a sigma (dependent 
 pair) type, avalue of which has a natural
@@ -185,7 +245,11 @@ of this type, whose first elements are,
 respectively, 0, 2, and 4.
 -/
 
--- Your answers here
+def evdp := Σ (n : ℕ), ev n
+
+def evp0 : evdp := ⟨ 0, ev0 ⟩
+def evp2 : evdp := ⟨ 2, ev2 ⟩ 
+def evp4 : evdp := ⟨ 4, ev4 ⟩ 
 
 /- 9. Write a function, mkEvp, that takes 
 a argument, n, of type nat, implicitly, and 
@@ -196,4 +260,11 @@ in what sense does mkEvp have a dependent
 function type? 
 -/
 
--- Your answers here
+def mkEvp {n : ℕ} : ev n → evdp
+| nEv := ⟨ n, nEv⟩
+
+-- It has a dependent function type in that 
+-- any "ev n" type depends on the value of
+-- "n" to determine its type, and mkEvp 
+-- similarly incorporates "ev n" types
+-- into its construction.
