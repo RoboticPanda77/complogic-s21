@@ -1,5 +1,6 @@
-import ...inClassNotes.typeclasses.functor
 import ...inClassNotes.typeclasses.algebra
+import ...inClassNotes.typeclasses.functor
+set_option old_structure_cmd true
 
 /-
 Copy this file to where you want to work on 
@@ -8,6 +9,9 @@ Work through the file following directions
 as indicated. Turn in your completed file on
 Collab.
 -/
+
+universe u
+open alg
 
 /-
 1. We've imported our definitions from our
@@ -19,6 +23,13 @@ expresses the claim that the integers (ℤ or
 *int* in Lean) is a ring. You may "stub out"
 the required proofs with *sorry*. 
 -/
+
+@[class]
+structure ring (α : Type u) extends add_comm_group α, mul_monoid α:=
+(mul_distrib_left : ∀ (a b c : α), mul_groupoid.mul a (add_groupoid.add b c) = add_groupoid.add (mul_groupoid.mul a b) (mul_groupoid.mul a c))
+(mul_distrib_right : ∀ (a b c : α), mul_groupoid.mul (add_groupoid.add b c) a = add_groupoid.add (mul_groupoid.mul b a) (mul_groupoid.mul c a))
+
+instance int_is_ring : ring ℤ := _ 
 
 /-
 2. Go learn what an algebraic *field* is, then
