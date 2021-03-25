@@ -41,6 +41,9 @@ may (and should) stub out the proof fields in
 your instances using sorry.
 -/
 
+/-
+Assert: lecture from relevant class posted in time to do the homework
+-/
 
 /-
 3. Graduate students required. Undergrads extra
@@ -77,17 +80,17 @@ you need to multiply, using your mul function.
 -/
 
 def add : nat → nat → nat
-| 0 m         := _
-| (n' + 1) m  := _
+| 0 m         := m
+| (n' + 1) m  := add n' (nat.succ(m))
 
 def mul : nat → nat → nat
-| 0 m         := _
-| (n' + 1) m  := _ 
+| 0 m         := 0
+| (n' + 1) m  := add m (mul n' m)
 
 -- first arg raised to second
 def exp : nat → nat → nat 
-| n 0 := _
-| n (m'+1) := _
+| n 0 := 1
+| n (m'+1) := mul n (exp n m')
 
 #eval exp 2 10    -- expect 1024
 
@@ -123,7 +126,8 @@ functions to implement your solution.
 
 open alg
 
--- Your answer here
+def mul_map_reduce {α β : Type} [mul_monoid β] (f : α → β) (l : list α) : β :=
+mul_monoid_foldr (fmap f l)
 
 
 
@@ -135,7 +139,7 @@ values in the list
 [1,0,2,0,3,0,4].
 -/
 
-#eval mul_map_reduce  _ [1,0,2,0,3,0,4]
+#eval mul_map_reduce (λ n : nat, if n = 0 then 1 else n) [1,0,2,0,3,0,4]
 -- expect 24
 
 /-
@@ -152,7 +156,7 @@ easier.
 
 inductive nat_eql: nat → nat → Type
 | zeros_equal : nat_eql 0 0
-| n_succ_m_succ_equal : Π {n m : nat}, _
+| n_succ_m_succ_equal : Π {n m : nat}, (nat_eql n m) → nat_eql (n+1) (m+1)
 
 /-
 B. Now either complete the following programs
@@ -162,10 +166,10 @@ won't be possible.
 
 open nat_eql
 
-def eq_0_0 : nat_eql 0 0 := _
-def eq_0_1 : nat_eql 0 1 := _
-def eq_1_1 : nat_eql 1 1 := _
-def eq_2_2 : nat_eql 2 2 := _
+def eq_0_0 : nat_eql 0 0 := zeros_equal
+def eq_0_1 : nat_eql 0 1 := _ -- impossible: 0 does not equal 1
+def eq_1_1 : nat_eql 1 1 := n_succ_m_succ_equal zeros_equal
+def eq_2_2 : nat_eql 2 2 := n_succ_m_succ_equal (n_succ_m_succ_equal zeros_equal)
 
 /-
 C. The apply tactic in Lean's tactic language
@@ -187,6 +191,17 @@ until you're done. Voila!
 
 def eq_10_10 : nat_eql 10 10 :=
 begin
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply n_succ_m_succ_equal,
+  apply zeros_equal
 end
 
 /-
@@ -203,6 +218,8 @@ ok with us.
 
 def eq_500_500 : nat_eql 500 500 :=
 begin
+  repeat {apply n_succ_m_succ_equal},
+  apply zeros_equal
 end
 
 
@@ -247,10 +264,13 @@ test cases below should work.
 -/
 
 def nat_to_bool : nat → bool :=
-_
+λ n, 
+  match n with
+  | 0 := ff
+  | _ := tt
+  end
 
-instance nat_to_bool_coe : has_coe nat bool := 
-_
+instance nat_to_bool_coe : has_coe nat bool := ⟨ nat_to_bool ⟩ 
 
 def needs_bool : bool → bool := λ b, b
 
@@ -272,8 +292,8 @@ where the empty string returns ff and non-empty,
 tt. 
 -/
 
-instance string_to_nat_coe : _ := 
-_
+instance string_to_nat_coe : has_coe string nat := 
+⟨ string.length ⟩ 
 
 -- Test cases
 #eval needs_bool "Hello"  -- expect tt
