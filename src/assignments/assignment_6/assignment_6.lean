@@ -222,6 +222,8 @@ begin
   apply zeros_equal
 end
 
+#reduce eq_500_500
+
 
 /-
 7. Typeclasses and instances are used in Lean
