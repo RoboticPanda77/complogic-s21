@@ -17,7 +17,9 @@ vectr with values (4,6), (-6,2), and
 (3, -7), respectively.
 -/
 
--- HERE
+def v1 : vectr := (4,6)
+def v2 : vectr := (-6,2)
+def v3 : vectr := (3,-7)
 
 /-
 1B. [10 points]
@@ -35,7 +37,7 @@ of vectors, v2 - v1 is defined as
 v2 + (-1:K) • v1.)
 -/
 
--- HERE 
+def v4 : vectr := ( 2 • v1 ) + ( ( -1:K ) • v2 ) + v3
 
 /-
 Compute the correct answer by hand
@@ -43,9 +45,17 @@ here, showing your work, and check
 that eval is producing the correct
 answer. 
 
--- HERE
+2 • (4,6) = (8,12)
+
+-1 • (-6,2) = (6,-2)
+
+(8,12) + (6,-2) = (14,10)
+
+(14,10) + (3,-7) = (17,3)
 
 -/
+
+#eval v4
 
 /-
 1C. [10 points]
@@ -110,9 +120,27 @@ left column. In the second column of
 the first table, write in the additive
 inverses of each element. In the second
 table, write the multiplicative inverses.
--/
 
--- HERE
+|-------------|----------------|
+|Integer mod 5|Additive Inverse|
+|-------------|----------------|
+|      0      |        0       |
+|      1      |        4       |
+|      2      |        3       |
+|      3      |        2       |
+|      4      |        1       |
+|-------------|----------------|
+
+
+|-------------|----------------------|
+|Integer mod 5|Multiplicative Inverse|
+|-------------|----------------------|
+|      1      |           1          |
+|      2      |           3          |
+|      3      |           2          |
+|      4      |           4          |
+|-------------|----------------------|
+-/
 
 /-
 4. [15 points]
@@ -123,9 +151,15 @@ not every value in the integers mod 4
 (except 0) has a multiplicative inverse,
 identify a value that doesn't have an
 inverse, and briefly explain why.
--/
 
--- HERE
+Integers mod 4 is not a field because 2
+cannot be multiplied by any integer n in 
+{0, 1, 2, 3} such that (2 ⬝ n) % 4 = 1. 
+This is because the result of (2 ⬝ n) % 4
+will always be either 0 or 2 as both 2 and
+4 are even numbers.
+
+-/
 
 /-
 5. [20 points]
@@ -151,7 +185,19 @@ show that your function returns the
 expected/correct result.
 -/
 
--- HERE
+universes u₁ u₂ u₃
+def foldr 
+  {α : Type u₁} 
+  {β : Type u₃} 
+  :
+  β →             -- overall answer for list.nil
+  (α → β → β) →   -- answer for head and tail reduced        
+  (list α → β)    -- returns a list reducer
+| b f list.nil := b
+| b f (h::t) := f h (foldr b f t)
+
+#eval foldr (0,0) has_add.add [v1, v2, v3, v4]
+
 
 /-
 6. Required for graduate students,
